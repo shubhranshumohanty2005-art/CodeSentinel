@@ -1,0 +1,105 @@
+# ============================================================
+# Render Blueprint — CodeSentinel
+# https://docs.render.com/infrastructure-as-code
+#
+# Deploy:  Push to main → Render auto-deploys via Blueprint
+#          Or manually: Dashboard → New → Blueprint → point to this repo
+# ============================================================
+
+services:
+  # ── Backend (Django + Gunicorn) ─────────────────────────
+  - type: web
+    name: codesentinel-backend
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn codesentinel.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 180
+    healthCheckPath: /api/health/
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: FIREBASE_PROJECT_ID
+        sync: false  # set manually in Render dashboard
+      - key: FIREBASE_ADMIN_SDK_JSON_PATH
+        sync: false
+      - key: FIREBASE_RTDB_URL
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: FIELD_ENCRYPTION_KEY
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          name: codesentinel-redis
+          type: redis
+          property: connectionString
+
+  # ── Frontend (Vite Static Site) ─────────────────────────
+  - type: web
+    name: codesentinel-frontend
+    runtime: static
+    region: oregon
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+    routes:
+      # SPA fallback — all routes serve index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: VITE_API_BASE_URL
+        fromService:
+          name: codesentinel-backend
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: VITE_FIREBASE_API_KEY
+        sync: false
+      - key: VITE_FIREBASE_AUTH_DOMAIN
+        sync: false
+      - key: VITE_FIREBASE_PROJECT_ID
+        sync: false
+      - key: VITE_FIREBASE_STORAGE_BUCKET
+        sync: false
+      - key: VITE_FIREBASE_MESSAGING_SENDER_ID
+        sync: false
+      - key: VITE_FIREBASE_APP_ID
+        sync: false
+      - key: VITE_FIREBASE_RTDB_URL
+        sync: false
+      - key: VITE_GITHUB_CLIENT_ID
+        sync: false
+
+  # ── Redis ───────────────────────────────────────────────
+  - type: redis
+    name: codesentinel-redis
+    region: oregon
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []  # internal only

@@ -84,6 +84,7 @@ REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 # Firebase
 FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID', '')
 FIREBASE_ADMIN_SDK_JSON_PATH = os.getenv('FIREBASE_ADMIN_SDK_JSON_PATH', '')
+FIREBASE_ADMIN_SDK_JSON = os.getenv('FIREBASE_ADMIN_SDK_JSON', '')  # Raw JSON string (for Render)
 FIREBASE_RTDB_URL = os.getenv('FIREBASE_RTDB_URL', '')
 
 # AI Provider Keys

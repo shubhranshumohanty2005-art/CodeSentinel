@@ -26,13 +26,18 @@ def _get_firebase_app():
         return _firebase_app
 
     try:
+        import json as _json
         import firebase_admin
         from firebase_admin import credentials
 
-        # Try to initialize with service account JSON
+        # Try to initialize with service account JSON file
         json_path = settings.FIREBASE_ADMIN_SDK_JSON_PATH
+        json_raw = getattr(settings, 'FIREBASE_ADMIN_SDK_JSON', '')
         if json_path and json_path.strip():
             cred = credentials.Certificate(json_path)
+        elif json_raw and json_raw.strip():
+            # Raw JSON string (e.g. from Render env var)
+            cred = credentials.Certificate(_json.loads(json_raw))
         else:
             # Fall back to application default credentials or project ID only
             cred = credentials.ApplicationDefault() if not settings.FIREBASE_PROJECT_ID else None

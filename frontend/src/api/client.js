@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { getIdToken } from '../firebase';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+const rawBase = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE = rawBase
+  ? (rawBase.endsWith('/api') ? rawBase : `${rawBase.replace(/\/+$/, '')}/api`)
+  : '/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE,
