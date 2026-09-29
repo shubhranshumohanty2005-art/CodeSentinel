@@ -1,0 +1,20 @@
+{
+  "rules": {
+    "job_status": {
+      "$repoId": {
+        "$jobId": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      }
+    },
+    "presence": {
+      "$repoId": {
+        "$uid": {
+          ".read": "auth != null",
+          ".write": "auth != null && auth.uid === $uid"
+        }
+      }
+    }
+  }
+}

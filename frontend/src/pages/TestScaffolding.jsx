@@ -1,0 +1,155 @@
+import { useState } from 'react';
+import PageShell from '../components/layout/PageShell';
+import GlassCard from '../components/layout/GlassCard';
+import Loader, { ProgressBar } from '../components/shared/Loader';
+import EmptyState from '../components/shared/EmptyState';
+import { generateTests, commitTest } from '../api/client';
+import { useJobStatus } from '../hooks/useJobStatus';
+import { useRepos } from '../hooks/useRepos';
+
+export default function TestScaffolding() {
+  const { repos, loading: reposLoading, error: reposError } = useRepos();
+  const [repo, setRepo] = useState('');
+  const [filePath, setFilePath] = useState('');
+  const [functionName, setFunctionName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [jobId, setJobId] = useState(null);
+  const [committing, setCommitting] = useState(false);
+
+  const repoId = repo.replace('/', '_');
+  const jobStatus = useJobStatus(repoId, jobId);
+
+  const handleGenerate = async () => {
+    if (!repo || !filePath) return;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const res = await generateTests(repo, filePath, functionName || undefined);
+      setResult(res.data.result);
+      setJobId(res.data.job_id);
+    } catch (e) {
+      setError(e.message || 'Test generation failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCommit = async () => {
+    if (!result) return;
+    setCommitting(true);
+    try {
+      const testPath = `tests/test_${filePath.split('/').pop()}`;
+      await commitTest(repo, testPath, result.generatedTest, 'test: add generated unit tests');
+      alert(`Test file committed to ${repo}!`);
+    } catch (e) {
+      alert(e.message || 'Failed to commit');
+    } finally {
+      setCommitting(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(result?.generatedTest || '');
+    alert('Copied to clipboard!');
+  };
+
+  return (
+    <PageShell title="🧪 Test Generator" subtitle="Generate unit tests for any file or function">
+      {/* Input */}
+      <GlassCard className="mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="text-xs text-white/40 mb-1 block">Repository</label>
+            {reposLoading ? (
+              <div className="glass-input w-full text-white/40 text-sm animate-pulse">Loading repos...</div>
+            ) : reposError ? (
+              <div className="glass-input w-full text-red-400 text-sm">Failed to load repos</div>
+            ) : (
+              <select
+                value={repo}
+                onChange={(e) => setRepo(e.target.value)}
+                className="glass-input w-full"
+              >
+                <option value="">Select a repository...</option>
+                {repos.map((r) => (
+                  <option key={r.id} value={r.full_name}>{r.full_name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+          <div>
+            <label className="text-xs text-white/40 mb-1 block">File Path</label>
+            <input
+              type="text"
+              placeholder="src/utils.py"
+              value={filePath}
+              onChange={(e) => setFilePath(e.target.value)}
+              className="glass-input w-full"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-white/40 mb-1 block">Function (optional)</label>
+            <input
+              type="text"
+              placeholder="my_function"
+              value={functionName}
+              onChange={(e) => setFunctionName(e.target.value)}
+              className="glass-input w-full"
+            />
+          </div>
+        </div>
+        <button
+          onClick={handleGenerate}
+          disabled={loading || !repo || !filePath}
+          className="btn-accent mt-4 disabled:opacity-50"
+        >
+          {loading ? 'Generating...' : 'Generate Tests'}
+        </button>
+      </GlassCard>
+
+      {/* Progress */}
+      {jobStatus && jobStatus.status !== 'done' && (
+        <GlassCard className="mb-6">
+          <ProgressBar percent={jobStatus.percent || 0} status={jobStatus.status} message={jobStatus.message} />
+        </GlassCard>
+      )}
+
+      {error && (
+        <GlassCard className="mb-6 border-red-500/30">
+          <p className="text-red-400">{error}</p>
+        </GlassCard>
+      )}
+
+      {/* Result */}
+      {result && (
+        <GlassCard>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Generated Tests</h3>
+              <p className="text-xs text-white/40 mt-1">
+                Language: {result.language} • Framework: {result.testFramework} • AI: {result.aiProvider}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={copyToClipboard} className="btn-ghost text-sm">📋 Copy</button>
+              <button onClick={handleCommit} disabled={committing} className="btn-accent text-sm disabled:opacity-50">
+                {committing ? 'Committing...' : '📤 Create File in Repo'}
+              </button>
+            </div>
+          </div>
+          <div className="code-block max-h-[600px] overflow-auto">
+            <pre className="text-sm text-white/80 whitespace-pre-wrap">{result.generatedTest}</pre>
+          </div>
+        </GlassCard>
+      )}
+
+      {!result && !loading && !error && (
+        <EmptyState icon="🧪" title="Generate test scaffolding" message="Provide a repository and file path to auto-generate unit tests." />
+      )}
+    </PageShell>
+  );
+}
