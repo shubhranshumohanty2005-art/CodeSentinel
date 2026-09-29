@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import Navbar from './components/layout/Navbar';
-import ThreeBackground from './components/shared/ThreeBackground';
+import BlackHoleBackground from './components/shared/BlackHoleBackground';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -36,12 +36,12 @@ function ProtectedRoute({ children }) {
 function AppRoutes() {
   const location = useLocation();
 
-  // Show Three.js background on all pages except Landing and Login
-  const showThreeBackground = location.pathname !== '/' && location.pathname !== '/login';
+  // Show black hole background on all pages except Landing and Login
+  const showBackground = location.pathname !== '/' && location.pathname !== '/login';
 
   return (
     <>
-      {showThreeBackground && <ThreeBackground />}
+      {showBackground && <BlackHoleBackground />}
       <Navbar />
       <div className="relative z-10">
         <Routes>
