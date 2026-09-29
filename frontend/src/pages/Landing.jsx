@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import MouseFrameBackground from '../components/landing/MouseFrameBackground';
+import EtchedAccretion from '../components/ui/EtchedAccretion';
 import FeatureGrid from '../components/landing/FeatureGrid';
 import HowItWorks from '../components/landing/HowItWorks';
 import CTASection from '../components/landing/CTASection';
@@ -8,11 +8,27 @@ import CTASection from '../components/landing/CTASection';
 export default function Landing() {
   return (
     <div className="min-h-screen bg-navy-900 relative">
-      {/* Full-page mouse-driven frame animation background */}
-      <MouseFrameBackground />
+      {/* Full-page etched accretion black hole background */}
+      <EtchedAccretion
+        height="100vh"
+        preset="glacier"
+        params={{
+          center: [0.5, 0.48],
+          holeSize: 0.06,
+          angle: 10,
+          inclination: 0.3,
+          flare: 1.2,
+          stars: 1.4,
+          vignette: 0.65,
+          exposure: 1.1,
+          grain: 0.8,
+          background: '#030307',
+        }}
+        className="z-0"
+      >
 
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden z-10">
+      <section className="relative h-full flex items-center justify-center overflow-hidden">
         <div className="relative z-10 text-center px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -58,6 +74,7 @@ export default function Landing() {
           </svg>
         </motion.div>
       </section>
+      </EtchedAccretion>
 
       {/* Features */}
       <section id="features" className="py-24 section-container relative z-10">
