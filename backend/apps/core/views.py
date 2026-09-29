@@ -14,10 +14,63 @@ def health_check(request):
     """
     GET /api/health/
 
-    Lightweight health check for Docker HEALTHCHECK and monitoring.
+    Deep health check — verifies backend, Redis, and Firebase connectivity.
     Does not require authentication.
+
+    Query params:
+        ?deep=true  — run full dependency checks (default: true)
+
+    Returns 200 with per-service status. The overall status is:
+        - "healthy"  — all dependencies reachable
+        - "degraded" — app is up but one or more dependencies are down
     """
-    return Response({'status': 'ok', 'service': 'codesentinel-backend'})
+    import time
+    from datetime import datetime, timezone
+    from django.conf import settings
+
+    checks = {}
+    deep = request.query_params.get('deep', 'true').lower() != 'false'
+
+    # ── Redis ─────────────────────────────────────────
+    if deep:
+        try:
+            import redis
+            start = time.time()
+            r = redis.from_url(settings.REDIS_URL, socket_connect_timeout=3)
+            r.ping()
+            latency_ms = round((time.time() - start) * 1000, 1)
+            checks['redis'] = {'status': 'ok', 'latency_ms': latency_ms}
+        except Exception as e:
+            logger.warning(f"Health check — Redis unreachable: {e}")
+            checks['redis'] = {'status': 'error', 'message': str(e)}
+
+    # ── Firebase Admin SDK ────────────────────────────
+    if deep:
+        try:
+            from apps.core.firebase_auth import _get_firebase_app
+            start = time.time()
+            app = _get_firebase_app()
+            latency_ms = round((time.time() - start) * 1000, 1)
+            if app:
+                checks['firebase'] = {'status': 'ok', 'latency_ms': latency_ms}
+            else:
+                checks['firebase'] = {'status': 'not_configured'}
+        except Exception as e:
+            logger.warning(f"Health check — Firebase error: {e}")
+            checks['firebase'] = {'status': 'error', 'message': str(e)}
+
+    # ── Overall ───────────────────────────────────────
+    all_ok = all(
+        c.get('status') in ('ok', 'not_configured')
+        for c in checks.values()
+    )
+
+    return Response({
+        'status': 'healthy' if all_ok else 'degraded',
+        'service': 'codesentinel-backend',
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+        'checks': checks,
+    })
 
 
 @api_view(['POST'])
