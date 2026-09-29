@@ -99,7 +99,7 @@ class AiClientFallbackTests(TestCase):
 class GithubDiffSummarizerSkillTests(TestCase):
     """Test the github-diff-summarizer skill."""
 
-    @patch('apps.ai.ai_client.generate_json')
+    @patch('apps.ai.skills.github_diff_summarizer.generate_json')
     def test_summarize_diff_success(self, mock_generate):
         """Test successful diff summarization."""
         mock_generate.return_value = {
@@ -119,7 +119,7 @@ class GithubDiffSummarizerSkillTests(TestCase):
         self.assertEqual(result['data']['change_type'], 'feature')
         self.assertEqual(result['provider'], 'nvidia')
 
-    @patch('apps.ai.ai_client.generate_json')
+    @patch('apps.ai.skills.github_diff_summarizer.generate_json')
     def test_summarize_diff_with_context(self, mock_generate):
         """Test diff summarization with additional context."""
         mock_generate.return_value = {

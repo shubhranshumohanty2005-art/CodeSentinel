@@ -112,15 +112,17 @@ def _call_groq(prompt, system=None, json_mode=False):
     return response.choices[0].message.content
 
 
-# Ordered fallback chain
-PROVIDERS = [
-    ("nvidia", _call_nvidia),
-    ("gemini", _call_gemini),
-    ("groq", _call_groq),
+# Ordered fallback chain — use string references for late binding so
+# unittest.mock.patch can replace the module-level names successfully.
+PROVIDER_NAMES = [
+    ("nvidia", "_call_nvidia"),
+    ("gemini", "_call_gemini"),
+    ("groq", "_call_groq"),
 ]
 
-
 import re
+import sys
+
 
 def generate(prompt, system=None, json_mode=False):
     """
@@ -143,7 +145,11 @@ def generate(prompt, system=None, json_mode=False):
     errors = []
     max_retries = 3
 
-    for provider_name, provider_fn in PROVIDERS:
+    # Look up provider functions by name at call time so that mocks work
+    _this_module = sys.modules[__name__]
+    providers = [(name, getattr(_this_module, fn_name)) for name, fn_name in PROVIDER_NAMES]
+
+    for provider_name, provider_fn in providers:
         retries = 0
         while retries <= max_retries:
             try:
