@@ -54,7 +54,6 @@ services:
   - type: web
     name: codesentinel-frontend
     runtime: static
-    region: oregon
     plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
