@@ -78,8 +78,15 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'apps.core.exceptions.custom_exception_handler',
 }
 
-# Redis
+# Redis and Caching
 REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': REDIS_URL,
+    }
+}
 
 # Firebase
 FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID', '')

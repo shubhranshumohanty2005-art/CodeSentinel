@@ -19,6 +19,12 @@ def list_repos(request):
     if not token:
         return Response({'error': 'GitHub token not found. Please re-authenticate.'}, status=400)
 
+    cache_key = f"user_repos_{uid}"
+    from django.core.cache import cache
+    cached_response = cache.get(cache_key)
+    if cached_response:
+        return Response(cached_response)
+
     try:
         repos = gh.list_user_repos(token)
         connected = db.get_user_repos(uid)
@@ -38,7 +44,9 @@ def list_repos(request):
                 'connected': str(repo['id']) in connected_ids,
             })
 
-        return Response({'repos': result})
+        response_data = {'repos': result}
+        cache.set(cache_key, response_data, 300) # Cache for 5 minutes
+        return Response(response_data)
     except Exception as e:
         logger.error(f"Failed to list repos: {e}")
         return Response({'error': str(e)}, status=500)
@@ -58,6 +66,8 @@ def connect_repo(request):
         return Response({'error': 'repo_id and full_name are required'}, status=400)
 
     db.connect_repo(uid, str(repo_id), {'fullName': full_name})
+    from django.core.cache import cache
+    cache.delete(f"user_repos_{uid}")
     return Response({'message': f'Connected {full_name}'})
 
 
@@ -73,4 +83,6 @@ def disconnect_repo(request):
         return Response({'error': 'repo_id is required'}, status=400)
 
     db.disconnect_repo(uid, str(repo_id))
+    from django.core.cache import cache
+    cache.delete(f"user_repos_{uid}")
     return Response({'message': 'Disconnected successfully'})
