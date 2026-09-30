@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import KageScene from '../components/landing/KageScene';
+import KageBackground from '../components/landing/KageBackground';
 import '../styles/kage.css';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -148,7 +148,7 @@ export default function Landing() {
   return (
     <div className="kage-page">
       {/* ── Canvas ── */}
-      <KageScene />
+      <KageBackground />
 
       {/* ── Grain ── */}
       <div className="kage-grain" />
