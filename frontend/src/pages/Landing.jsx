@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import KageScene from '../components/landing/KageScene';
 import '../styles/kage.css';
