@@ -185,15 +185,21 @@ export default function KageLanding() {
 
     const checkLoad = () => {
       const doc = frame.contentDocument;
-      if (doc && doc.readyState === 'complete' && doc.location.href !== 'about:blank') {
+      if (doc && doc.readyState === 'complete' && doc.location?.href !== 'about:blank') {
         onLoad();
       } else {
         frame.addEventListener('load', onLoad);
       }
     };
     checkLoad();
+    
+    // Foolproof fallback: always reveal after 1.5s
+    const fallbackTimer = setTimeout(() => setReady(true), 1500);
 
-    return () => frame.removeEventListener('load', onLoad);
+    return () => {
+      frame.removeEventListener('load', onLoad);
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   return (
