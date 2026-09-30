@@ -1,112 +1,545 @@
+import { useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import EtchedAccretion from '../components/ui/EtchedAccretion';
-import Hero3D from '../components/landing/Hero3D';
-import FeatureGrid from '../components/landing/FeatureGrid';
-import HowItWorks from '../components/landing/HowItWorks';
-import CTASection from '../components/landing/CTASection';
+import '../styles/kage.css';
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   CodeSentinel Landing Page — Kage Design Language
+   Dark ink tones · Vermilion/ember accents · Onest typography
+   Scroll-reveal animations · WebGL particle canvas · Grain overlay
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+// ─── WebGL Particle Canvas ───────────────────────────────────────────────
+function initCanvas(canvas) {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return () => {};
+
+  let animId;
+  let w, h;
+  const particles = [];
+  const PARTICLE_COUNT = 120;
+
+  const resize = () => {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  };
+
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = Math.random() * (w || window.innerWidth);
+      this.y = Math.random() * (h || window.innerHeight);
+      this.vx = (Math.random() - 0.5) * 0.3;
+      this.vy = (Math.random() - 0.5) * 0.3;
+      this.size = Math.random() * 1.5 + 0.3;
+      this.alpha = Math.random() * 0.4 + 0.05;
+      this.pulse = Math.random() * Math.PI * 2;
+      this.pulseSpeed = Math.random() * 0.008 + 0.003;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.pulse += this.pulseSpeed;
+      if (this.x < -10 || this.x > w + 10 || this.y < -10 || this.y > h + 10) {
+        this.reset();
+      }
+    }
+    draw(ctx) {
+      const a = this.alpha * (0.5 + 0.5 * Math.sin(this.pulse));
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(223, 231, 224, ${a})`;
+      ctx.fill();
+    }
+  }
+
+  resize();
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push(new Particle());
+  }
+
+  // Draw vermilion moon
+  const drawMoon = () => {
+    const mx = w * 0.72;
+    const my = h * 0.22;
+    const mr = Math.min(w, h) * 0.055;
+
+    // Outer glow
+    const grd3 = ctx.createRadialGradient(mx, my, mr * 0.5, mx, my, mr * 6);
+    grd3.addColorStop(0, 'rgba(224, 35, 28, 0.12)');
+    grd3.addColorStop(0.3, 'rgba(224, 35, 28, 0.04)');
+    grd3.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd3;
+    ctx.fillRect(mx - mr * 6, my - mr * 6, mr * 12, mr * 12);
+
+    // Moon body
+    const grd = ctx.createRadialGradient(mx - mr * 0.3, my - mr * 0.3, 0, mx, my, mr);
+    grd.addColorStop(0, 'rgba(255, 90, 60, 0.95)');
+    grd.addColorStop(0.5, 'rgba(224, 35, 28, 0.85)');
+    grd.addColorStop(1, 'rgba(158, 20, 16, 0.4)');
+    ctx.beginPath();
+    ctx.arc(mx, my, mr, 0, Math.PI * 2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+
+    // Inner glow
+    const grd2 = ctx.createRadialGradient(mx, my, 0, mx, my, mr * 2.5);
+    grd2.addColorStop(0, 'rgba(255, 90, 60, 0.2)');
+    grd2.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd2;
+    ctx.fillRect(mx - mr * 3, my - mr * 3, mr * 6, mr * 6);
+  };
+
+  // Atmospheric gradient
+  const drawAtmosphere = () => {
+    // Top gradient
+    const topGrd = ctx.createLinearGradient(0, 0, 0, h * 0.5);
+    topGrd.addColorStop(0, 'rgba(10, 18, 28, 0.6)');
+    topGrd.addColorStop(0.4, 'rgba(8, 14, 22, 0.3)');
+    topGrd.addColorStop(1, 'transparent');
+    ctx.fillStyle = topGrd;
+    ctx.fillRect(0, 0, w, h * 0.5);
+
+    // Warm under-glow from bottom
+    const btmGrd = ctx.createLinearGradient(0, h * 0.6, 0, h);
+    btmGrd.addColorStop(0, 'transparent');
+    btmGrd.addColorStop(0.5, 'rgba(228, 104, 24, 0.02)');
+    btmGrd.addColorStop(1, 'rgba(120, 40, 10, 0.06)');
+    ctx.fillStyle = btmGrd;
+    ctx.fillRect(0, h * 0.6, w, h * 0.4);
+  };
+
+  const frame = () => {
+    ctx.clearRect(0, 0, w, h);
+    drawAtmosphere();
+    drawMoon();
+    for (const p of particles) {
+      p.update();
+      p.draw(ctx);
+    }
+    animId = requestAnimationFrame(frame);
+  };
+
+  window.addEventListener('resize', resize);
+  frame();
+
+  return () => {
+    cancelAnimationFrame(animId);
+    window.removeEventListener('resize', resize);
+  };
+}
+
+// ─── Scroll Reveal Observer ──────────────────────────────────────────────
+function useScrollReveal() {
+  const observerRef = useRef(null);
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('rv-in');
+            observerRef.current?.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    const elements = document.querySelectorAll('.kage-rv');
+    elements.forEach((el) => observerRef.current?.observe(el));
+
+    return () => observerRef.current?.disconnect();
+  }, []);
+}
+
+// ─── Nav Scroll Behavior ─────────────────────────────────────────────────
+function useNavScroll() {
+  useEffect(() => {
+    const nav = document.querySelector('.kage-nav');
+    if (!nav) return;
+
+    let lastY = 0;
+    let ticking = false;
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        if (y > 120) {
+          nav.classList.add('stuck');
+        } else {
+          nav.classList.remove('stuck');
+        }
+        if (y > lastY && y > 300) {
+          nav.classList.add('hide');
+        } else {
+          nav.classList.remove('hide');
+        }
+        lastY = y;
+        ticking = false;
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+}
+
+// ─── Section Rail Tracker ────────────────────────────────────────────────
+function useRailTracker() {
+  useEffect(() => {
+    const sections = document.querySelectorAll('[data-section]');
+    const buttons = document.querySelectorAll('.kage-rail button');
+    if (!sections.length || !buttons.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const idx = entry.target.dataset.section;
+            buttons.forEach((b) => b.classList.remove('on'));
+            buttons[idx]?.classList.add('on');
+          }
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    sections.forEach((sec) => observer.observe(sec));
+    return () => observer.disconnect();
+  }, []);
+}
+
+// ─── Feature Data ────────────────────────────────────────────────────────
+const FEATURES = [
+  {
+    id: 'review',
+    icon: '⛩',
+    title: 'PR Reviewer',
+    sub: 'Code Analysis',
+    desc: 'Line-level code review with bug detection, style checks, and risk scoring — powered by multi-provider AI.',
+    meta: ['NVIDIA NIM', 'Live'],
+  },
+  {
+    id: 'docs',
+    icon: '📜',
+    title: 'Docs & Changelog',
+    sub: 'Auto-generate',
+    desc: 'Generate README sections and Keep-a-Changelog entries directly from your commit history.',
+    meta: ['Gemini', 'Auto'],
+  },
+  {
+    id: 'triage',
+    icon: '🔥',
+    title: 'Bug Triage',
+    sub: 'Smart Labels',
+    desc: 'Severity analysis, owner suggestions, and duplicate detection for every issue filed.',
+    meta: ['Groq', 'Fast'],
+  },
+];
+
+const STEPS = [
+  { num: '01', title: 'Connect GitHub', desc: 'Sign in with GitHub OAuth and connect your repositories in one click.', label: 'SETUP' },
+  { num: '02', title: 'Choose Your Tool', desc: 'Select from PR Review, Docs Generator, Bug Triage, or Test Scaffolding.', label: 'SELECT' },
+  { num: '03', title: 'AI Analyzes Code', desc: 'Multi-provider AI chain processes your request with automatic fallback reliability.', label: 'PROCESS' },
+  { num: '04', title: 'Act on Results', desc: 'Post reviews, commit docs, apply labels, or create test files — directly to GitHub.', label: 'DEPLOY' },
+];
+
+const STATS = [
+  { value: '3', label: 'AI Providers' },
+  { value: '4', label: 'Core Tools' },
+  { value: '<1s', label: 'Avg Latency' },
+  { value: '99.9%', label: 'Uptime SLA' },
+];
+
+// ─── Main Component ──────────────────────────────────────────────────────
 export default function Landing() {
-  return (
-    <div className="min-h-screen bg-navy-900 relative">
-      {/* Full-page etched accretion black hole background */}
-      <EtchedAccretion
-        height="100vh"
-        preset="glacier"
-        params={{
-          center: [0.5, 0.48],
-          holeSize: 0.06,
-          angle: 10,
-          inclination: 0.3,
-          flare: 1.2,
-          stars: 1.4,
-          vignette: 0.65,
-          exposure: 1.1,
-          grain: 0.8,
-          background: '#030307',
-        }}
-        className="z-0"
-      >
-        {/* Hero Section */}
-        <section className="relative h-full flex items-center justify-center overflow-hidden">
-          <div className="relative z-10 text-center px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold mb-6">
-                <span className="text-white">Code</span>
-                <span className="text-gradient">Sentinel</span>
-              </h1>
-              <p className="text-xl sm:text-2xl text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
-                AI co-pilot for software teams. Review PRs, generate docs,
-                triage bugs, and scaffold tests — all from one dashboard.
-              </p>
-            </motion.div>
+  const canvasRef = useRef(null);
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
-            >
-              <Link to="/login" className="btn-accent text-lg px-8 py-4 inline-flex items-center gap-2">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+  useScrollReveal();
+  useNavScroll();
+  useRailTracker();
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const cleanup = initCanvas(canvasRef.current);
+    return cleanup;
+  }, []);
+
+  const scrollTo = useCallback((id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  return (
+    <div className="kage-page">
+      {/* ── Canvas ── */}
+      <canvas ref={canvasRef} className="kage-canvas" />
+
+      {/* ── Grain ── */}
+      <div className="kage-grain" />
+
+      {/* ── Vignette ── */}
+      <div className="kage-vignette" />
+
+      {/* ── Navigation ── */}
+      <nav className="kage-nav">
+        <Link to="/" className="kage-brand">
+          <svg className="kage-brand-icon" viewBox="0 0 34 34" fill="none">
+            <rect width="34" height="34" rx="8" fill="#0a0e12" />
+            <circle cx="17" cy="18" r="7" fill="#e0231c" opacity="0.9" />
+            <rect x="5" y="9" width="24" height="2.4" rx="1.2" fill="#dfe7e0" />
+            <rect x="8" y="14" width="18" height="1.8" rx="0.9" fill="#dfe7e0" opacity="0.6" />
+          </svg>
+          <div className="kage-brand-text">
+            <b>CODESENTINEL</b>
+            <i>AI CO-PILOT</i>
+          </div>
+        </Link>
+        <ul className="kage-nav-links">
+          <li><a className="kage-nav-link on" onClick={() => scrollTo('hero')}>Home</a></li>
+          <li><a className="kage-nav-link" onClick={() => scrollTo('gate')}>About</a></li>
+          <li><a className="kage-nav-link" onClick={() => scrollTo('pathways')}>Tools</a></li>
+          <li><a className="kage-nav-link" onClick={() => scrollTo('craft')}>Workflow</a></li>
+          <li><a className="kage-nav-link" onClick={() => scrollTo('eternity')}>Get Started</a></li>
+        </ul>
+      </nav>
+
+      {/* ── Progress Rail ── */}
+      <div className="kage-rail">
+        <button className="on" onClick={() => scrollTo('hero')}><i /></button>
+        <button onClick={() => scrollTo('gate')}><i /></button>
+        <button onClick={() => scrollTo('pathways')}><i /></button>
+        <button onClick={() => scrollTo('craft')}><i /></button>
+        <button onClick={() => scrollTo('eternity')}><i /></button>
+      </div>
+
+      {/* ── Page Content ── */}
+      <div className="kage-content">
+
+        {/* ═══════ HERO ═══════ */}
+        <section className="kage-hero" id="hero" data-section="0">
+          <div className="kage-hero-top">
+            <div className="kage-eyebrow kage-rv kage-rv-fade" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+              <span className="kage-dot" />
+              AI-POWERED CODE INTELLIGENCE
+            </div>
+            <h1 className="kage-display kage-h-hero kage-rv kage-rv-up" data-delay="1">
+              Where Stillness<br />Reveals the Unseen
+            </h1>
+            <p className="kage-body-lg kage-hero-sub kage-rv kage-rv-up" data-delay="2">
+              CodeSentinel watches your codebase so you don't have to. Review PRs,
+              generate docs, triage bugs, and scaffold tests — all from one dashboard.
+            </p>
+            <Link to="/login" className="kage-arrowlink kage-rv kage-rv-up" data-delay="3">
+              <span>Sign in with GitHub</span>
+              <span className="kage-ar">
+                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+                  <path d="M1 12L12 1M12 1H4M12 1v8" />
                 </svg>
-                Sign in with GitHub
-              </Link>
-              <a href="#features" className="btn-ghost text-lg px-8 py-4">
-                See how it works ↓
-              </a>
-            </motion.div>
+              </span>
+            </Link>
           </div>
 
-          {/* Scroll indicator */}
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/30"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          <div className="kage-hero-spacer" />
+
+          <div className="kage-hero-foot">
+            <div className="kage-hero-cue kage-rv kage-rv-fade" data-delay="4">
+              SCROLL TO EXPLORE
+              <span className="kage-cue-track"><i /></span>
+            </div>
+            <div className="kage-chips kage-rv kage-rv-up" data-delay="4">
+              {[
+                { num: 'I', title: 'PR Review', desc: 'Line-level analysis' },
+                { num: 'II', title: 'Docs Gen', desc: 'Auto documentation' },
+                { num: 'III', title: 'Bug Triage', desc: 'Smart severity' },
+                { num: 'IV', title: 'Test Scaffold', desc: 'Framework-aware' },
+              ].map((chip) => (
+                <div key={chip.num} className="kage-chip" onClick={() => scrollTo('pathways')}>
+                  <span className="kage-num">{chip.num}</span>
+                  <div className="kage-chip-tx">
+                    <b>{chip.title}</b>
+                    <p>{chip.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════ CHAPTER I — THE GATE (About) ═══════ */}
+        <section className="kage-sec" id="gate" data-section="1">
+          <div className="kage-sec-head kage-rv kage-rv-fade">
+            <span className="kage-k"><b>I</b> — THE GATE</span>
+            <span className="kage-rule" />
+          </div>
+
+          <div className="kage-gate-grid">
+            <h2 className="kage-display kage-h-sec kage-rv kage-rv-up">
+              Intelligence<br />at the Gate
+            </h2>
+            <div className="kage-gate-copy kage-rv kage-rv-up" data-delay="1">
+              <p className="kage-lead">
+                Every pull request is a gate. CodeSentinel stands watch — catching bugs before
+                they enter, scoring risk before you merge, and generating the documentation
+                your team needs but never writes.
+              </p>
+              <p className="kage-body" style={{ marginTop: 20 }}>
+                Built on a three-provider AI fallback chain — NVIDIA NIM, Google Gemini, and Groq —
+                so your workflow never breaks, even when a single provider goes down. Every analysis
+                is stored in Firestore with full provider attribution.
+              </p>
+              <Link to="/login" className="kage-arrowlink">
+                <span>Start reviewing</span>
+                <span className="kage-ar">
+                  <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+                    <path d="M1 12L12 1M12 1H4M12 1v8" />
+                  </svg>
+                </span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="kage-stats kage-rv kage-rv-up" data-delay="2">
+            {STATS.map((s) => (
+              <div key={s.label}>
+                <b>{s.value}</b>
+                <span>{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ═══════ CHAPTER II — PATHWAYS (Tools) ═══════ */}
+        <section className="kage-sec" id="pathways" data-section="2">
+          <div className="kage-sec-head kage-rv kage-rv-fade">
+            <span className="kage-k"><b>II</b> — PATHWAYS</span>
+            <span className="kage-rule" />
+          </div>
+
+          <div className="kage-cards">
+            {FEATURES.map((feat, i) => (
+              <div key={feat.id} className="kage-card kage-rv kage-rv-up" data-delay={String(i + 1)}>
+                <div className="kage-card-fr">
+                  <span className="kage-card-icon">{feat.icon}</span>
+                  <div className="kage-card-glow" />
+                  <div className="kage-card-lab">
+                    <div>
+                      <b>{feat.title}</b>
+                      <div className="kage-card-sub">{feat.sub}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="kage-card-meta">
+                  <span>{feat.meta[0]}</span>
+                  <span>{feat.meta[1]}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ═══════ CHAPTER III — SACRED CRAFT (Workflow) ═══════ */}
+        <section className="kage-sec" id="craft" data-section="3">
+          <div className="kage-sec-head kage-rv kage-rv-fade">
+            <span className="kage-k"><b>III</b> — SACRED CRAFT</span>
+            <span className="kage-rule" />
+          </div>
+
+          <div className="kage-cur-head kage-rv kage-rv-up">
+            <h2 className="kage-display kage-h-sec">
+              The Path<br />of Mastery
+            </h2>
+            <p className="kage-body-lg">
+              Four steps. One command. From connecting your repository to shipping
+              better code — every step is designed for flow.
+            </p>
+          </div>
+
+          <div className="kage-cur">
+            {STEPS.map((step, i) => (
+              <div key={step.num} className="kage-les kage-rv kage-rv-fade" data-delay={String(i + 1)}>
+                <span className="kage-step">{step.num}</span>
+                <h3>{step.title}</h3>
+                <p>{step.desc}</p>
+                <span className="kage-t">{step.label}</span>
+                <span className="kage-bar" />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ═══════ CHAPTER IV — ETERNITY (CTA) ═══════ */}
+        <section className="kage-fin" id="eternity" data-section="4">
+          <div className="kage-eyebrow kage-rv kage-rv-fade">
+            <span className="kage-dot" style={{ marginRight: 10 }} />
+            JOIN THE WATCH
+          </div>
+          <h2 className="kage-display kage-rv kage-rv-up" data-delay="1">
+            Ship Better<br />Code Today
+          </h2>
+          <p className="kage-body-lg kage-rv kage-rv-up" data-delay="2">
+            Join developers who use CodeSentinel to review PRs, generate docs,
+            triage bugs, and scaffold tests — all powered by AI with a
+            three-provider fallback chain.
+          </p>
+          <Link to="/login" className="kage-cta kage-rv kage-rv-up" data-delay="3">
+            <i />
+            <span>Sign in with GitHub</span>
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+              <path d="M1 12L12 1M12 1H4M12 1v8" />
             </svg>
-          </motion.div>
-        </section>
-      </EtchedAccretion>
-
-      {/* Rest of the page */}
-      <div className="relative">
-        {/* Background for sections below hero */}
-        <Hero3D />
-
-        {/* Features */}
-        <section id="features" className="py-24 section-container relative z-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl font-bold text-center text-white mb-16"
-          >
-            Four tools, <span className="text-gradient">one dashboard</span>
-          </motion.h2>
-          <FeatureGrid />
+          </Link>
         </section>
 
-        {/* How it works */}
-        <section className="section-container relative z-10">
-          <HowItWorks />
-        </section>
-
-        {/* CTA */}
-        <section className="section-container relative z-10">
-          <CTASection />
-        </section>
-
-        {/* Footer */}
-        <footer className="border-t border-white/5 py-8 text-center text-white/30 text-sm relative z-10">
-          <p>Powered by NVIDIA NIM • Google Gemini • Groq</p>
+        {/* ═══════ FOOTER ═══════ */}
+        <footer className="kage-foot kage-sec">
+          <div className="kage-foot-grid kage-rv kage-rv-up">
+            <div className="kage-foot-brand">
+              <svg width="42" height="42" viewBox="0 0 34 34" fill="none">
+                <rect width="34" height="34" rx="8" fill="#0a0e12" />
+                <circle cx="17" cy="18" r="7" fill="#e0231c" opacity="0.9" />
+                <rect x="5" y="9" width="24" height="2.4" rx="1.2" fill="#dfe7e0" />
+                <rect x="8" y="14" width="18" height="1.8" rx="0.9" fill="#dfe7e0" opacity="0.6" />
+              </svg>
+              <p>
+                AI co-pilot for software teams. Review PRs, generate docs,
+                triage bugs, and scaffold tests — from one dashboard.
+              </p>
+            </div>
+            <div>
+              <h4>Tools</h4>
+              <ul>
+                <li><Link to="/pr-review">PR Review</Link></li>
+                <li><Link to="/docs">Docs Generator</Link></li>
+                <li><Link to="/bug-triage">Bug Triage</Link></li>
+                <li><Link to="/test-scaffold">Test Scaffold</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4>Platform</h4>
+              <ul>
+                <li><Link to="/dashboard">Dashboard</Link></li>
+                <li><Link to="/connect-repo">Repositories</Link></li>
+                <li><Link to="/settings">Settings</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4>Powered By</h4>
+              <ul>
+                <li><a href="https://build.nvidia.com" target="_blank" rel="noopener noreferrer">NVIDIA NIM</a></li>
+                <li><a href="https://ai.google.dev" target="_blank" rel="noopener noreferrer">Google Gemini</a></li>
+                <li><a href="https://groq.com" target="_blank" rel="noopener noreferrer">Groq</a></li>
+                <li><a href="https://firebase.google.com" target="_blank" rel="noopener noreferrer">Firebase</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="kage-foot-base">
+            <span>© 2024 CODESENTINEL</span>
+            <span>AI · GITHUB · FIREBASE</span>
+          </div>
         </footer>
       </div>
     </div>

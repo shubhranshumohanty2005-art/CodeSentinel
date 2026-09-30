@@ -38,11 +38,13 @@ function AppRoutes() {
 
   // Show black hole background on all pages except Landing and Login
   const showBackground = location.pathname !== '/' && location.pathname !== '/login';
+  // Hide default navbar on Landing page (Kage has its own nav)
+  const showNavbar = location.pathname !== '/';
 
   return (
     <>
       {showBackground && <BlackHoleBackground />}
-      <Navbar />
+      {showNavbar && <Navbar />}
       <div className="relative z-10">
         <Routes>
           <Route path="/" element={<Landing />} />
