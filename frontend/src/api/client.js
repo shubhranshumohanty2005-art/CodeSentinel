@@ -4,7 +4,7 @@ import { getIdToken } from '../firebase';
 const rawBase = import.meta.env.VITE_API_BASE_URL || '';
 const API_BASE = rawBase
   ? (rawBase.endsWith('/api') ? rawBase : `${rawBase.replace(/\/+$/, '')}/api`)
-  : '/api';
+  : 'https://codesentinel-backend-nk87.onrender.com/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE,
