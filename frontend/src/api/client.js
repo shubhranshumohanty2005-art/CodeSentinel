@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { getIdToken } from '../firebase';
 
-const rawBase = import.meta.env.VITE_API_BASE_URL || '';
-const API_BASE = rawBase
-  ? (rawBase.endsWith('/api') ? rawBase : `${rawBase.replace(/\/+$/, '')}/api`)
+// Hardcoded for Vercel production to prevent Vercel env var overrides
+const API_BASE = import.meta.env.DEV 
+  ? (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api')
   : 'https://codesentinel-backend-nk87.onrender.com/api';
 
 const apiClient = axios.create({
