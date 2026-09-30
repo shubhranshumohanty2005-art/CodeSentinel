@@ -176,14 +176,23 @@ export default function KageLanding() {
         style.textContent = BRANDING_CSS;
         doc.head.appendChild(style);
 
-        setReady(true);
       } catch (err) {
         console.warn('[KageLanding] Content customization failed:', err);
+      } finally {
         setReady(true);
       }
     };
 
-    frame.addEventListener('load', onLoad);
+    const checkLoad = () => {
+      const doc = frame.contentDocument;
+      if (doc && doc.readyState === 'complete' && doc.location.href !== 'about:blank') {
+        onLoad();
+      } else {
+        frame.addEventListener('load', onLoad);
+      }
+    };
+    checkLoad();
+
     return () => frame.removeEventListener('load', onLoad);
   }, []);
 
