@@ -1,134 +1,14 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import KageScene from '../components/landing/KageScene';
 import '../styles/kage.css';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    CodeSentinel Landing Page — Kage Design Language
    Dark ink tones · Vermilion/ember accents · Onest typography
-   Scroll-reveal animations · WebGL particle canvas · Grain overlay
+   Scroll-reveal animations · Three.js temple scene · Grain overlay
    ═══════════════════════════════════════════════════════════════════════════ */
 
-// ─── WebGL Particle Canvas ───────────────────────────────────────────────
-function initCanvas(canvas) {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return () => {};
-
-  let animId;
-  let w, h;
-  const particles = [];
-  const PARTICLE_COUNT = 120;
-
-  const resize = () => {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
-  };
-
-  class Particle {
-    constructor() {
-      this.reset();
-    }
-    reset() {
-      this.x = Math.random() * (w || window.innerWidth);
-      this.y = Math.random() * (h || window.innerHeight);
-      this.vx = (Math.random() - 0.5) * 0.3;
-      this.vy = (Math.random() - 0.5) * 0.3;
-      this.size = Math.random() * 1.5 + 0.3;
-      this.alpha = Math.random() * 0.4 + 0.05;
-      this.pulse = Math.random() * Math.PI * 2;
-      this.pulseSpeed = Math.random() * 0.008 + 0.003;
-    }
-    update() {
-      this.x += this.vx;
-      this.y += this.vy;
-      this.pulse += this.pulseSpeed;
-      if (this.x < -10 || this.x > w + 10 || this.y < -10 || this.y > h + 10) {
-        this.reset();
-      }
-    }
-    draw(ctx) {
-      const a = this.alpha * (0.5 + 0.5 * Math.sin(this.pulse));
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(223, 231, 224, ${a})`;
-      ctx.fill();
-    }
-  }
-
-  resize();
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    particles.push(new Particle());
-  }
-
-  // Draw vermilion moon
-  const drawMoon = () => {
-    const mx = w * 0.72;
-    const my = h * 0.22;
-    const mr = Math.min(w, h) * 0.055;
-
-    // Outer glow
-    const grd3 = ctx.createRadialGradient(mx, my, mr * 0.5, mx, my, mr * 6);
-    grd3.addColorStop(0, 'rgba(224, 35, 28, 0.12)');
-    grd3.addColorStop(0.3, 'rgba(224, 35, 28, 0.04)');
-    grd3.addColorStop(1, 'transparent');
-    ctx.fillStyle = grd3;
-    ctx.fillRect(mx - mr * 6, my - mr * 6, mr * 12, mr * 12);
-
-    // Moon body
-    const grd = ctx.createRadialGradient(mx - mr * 0.3, my - mr * 0.3, 0, mx, my, mr);
-    grd.addColorStop(0, 'rgba(255, 90, 60, 0.95)');
-    grd.addColorStop(0.5, 'rgba(224, 35, 28, 0.85)');
-    grd.addColorStop(1, 'rgba(158, 20, 16, 0.4)');
-    ctx.beginPath();
-    ctx.arc(mx, my, mr, 0, Math.PI * 2);
-    ctx.fillStyle = grd;
-    ctx.fill();
-
-    // Inner glow
-    const grd2 = ctx.createRadialGradient(mx, my, 0, mx, my, mr * 2.5);
-    grd2.addColorStop(0, 'rgba(255, 90, 60, 0.2)');
-    grd2.addColorStop(1, 'transparent');
-    ctx.fillStyle = grd2;
-    ctx.fillRect(mx - mr * 3, my - mr * 3, mr * 6, mr * 6);
-  };
-
-  // Atmospheric gradient
-  const drawAtmosphere = () => {
-    // Top gradient
-    const topGrd = ctx.createLinearGradient(0, 0, 0, h * 0.5);
-    topGrd.addColorStop(0, 'rgba(10, 18, 28, 0.6)');
-    topGrd.addColorStop(0.4, 'rgba(8, 14, 22, 0.3)');
-    topGrd.addColorStop(1, 'transparent');
-    ctx.fillStyle = topGrd;
-    ctx.fillRect(0, 0, w, h * 0.5);
-
-    // Warm under-glow from bottom
-    const btmGrd = ctx.createLinearGradient(0, h * 0.6, 0, h);
-    btmGrd.addColorStop(0, 'transparent');
-    btmGrd.addColorStop(0.5, 'rgba(228, 104, 24, 0.02)');
-    btmGrd.addColorStop(1, 'rgba(120, 40, 10, 0.06)');
-    ctx.fillStyle = btmGrd;
-    ctx.fillRect(0, h * 0.6, w, h * 0.4);
-  };
-
-  const frame = () => {
-    ctx.clearRect(0, 0, w, h);
-    drawAtmosphere();
-    drawMoon();
-    for (const p of particles) {
-      p.update();
-      p.draw(ctx);
-    }
-    animId = requestAnimationFrame(frame);
-  };
-
-  window.addEventListener('resize', resize);
-  frame();
-
-  return () => {
-    cancelAnimationFrame(animId);
-    window.removeEventListener('resize', resize);
-  };
-}
 
 // ─── Scroll Reveal Observer ──────────────────────────────────────────────
 function useScrollReveal() {
@@ -257,17 +137,9 @@ const STATS = [
 
 // ─── Main Component ──────────────────────────────────────────────────────
 export default function Landing() {
-  const canvasRef = useRef(null);
-
   useScrollReveal();
   useNavScroll();
   useRailTracker();
-
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    const cleanup = initCanvas(canvasRef.current);
-    return cleanup;
-  }, []);
 
   const scrollTo = useCallback((id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
@@ -276,7 +148,7 @@ export default function Landing() {
   return (
     <div className="kage-page">
       {/* ── Canvas ── */}
-      <canvas ref={canvasRef} className="kage-canvas" />
+      <KageScene />
 
       {/* ── Grain ── */}
       <div className="kage-grain" />
