@@ -121,12 +121,12 @@ export default function GlassCard({
       '--border-size': 'calc(var(--border, 2) * 1px)',
       '--spotlight-size': 'calc(var(--size, 150) * 1px)',
       '--hue': 'calc(var(--base) + (var(--xp, 0) * var(--spread, 0)))',
-      backgroundImage: \`radial-gradient(
+      backgroundImage: `radial-gradient(
         var(--spotlight-size) var(--spotlight-size) at
         calc(var(--x, 0) * 1px)
         calc(var(--y, 0) * 1px),
         hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 70) * 1%) / var(--bg-spot-opacity, 0.1)), transparent
-      )\`,
+      )`,
       backgroundColor: 'var(--backdrop, transparent)',
       backgroundSize: 'calc(100% + (2 * var(--border-size))) calc(100% + (2 * var(--border-size)))',
       backgroundPosition: '50% 50%',
@@ -136,8 +136,8 @@ export default function GlassCard({
       touchAction: 'none',
     };
 
-    if (width !== undefined) baseStyles.width = typeof width === 'number' ? \`\${width}px\` : width;
-    if (height !== undefined) baseStyles.height = typeof height === 'number' ? \`\${height}px\` : height;
+    if (width !== undefined) baseStyles.width = typeof width === 'number' ? `${width}px` : width;
+    if (height !== undefined) baseStyles.height = typeof height === 'number' ? `${height}px` : height;
 
     return baseStyles;
   };
@@ -155,16 +155,16 @@ export default function GlassCard({
         ref={cardRef}
         data-glow
         style={getInlineStyles()}
-        className={\`
-          \${getSizeClasses()}
+        className={`
+          ${getSizeClasses()}
           rounded-2xl 
           relative 
           shadow-[0_1rem_2rem_-1rem_black] 
           p-6 
           backdrop-blur-[10px]
-          \${hover ? 'cursor-pointer' : ''}
-          \${className}
-        \`}
+          ${hover ? 'cursor-pointer' : ''}
+          ${className}
+        `}
         onClick={onClick}
         {...hoverProps}
         {...props}
