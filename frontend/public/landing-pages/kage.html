@@ -28,7 +28,7 @@
   --ease-io:cubic-bezier(.65,0,.35,1);
 }
 *,*::before,*::after{box-sizing:border-box}
-html{ -webkit-text-size-adjust:100%; scroll-behavior:auto; }
+html{ scroll-behavior:auto; }
 body{
   margin:0; background:var(--ink); color:var(--bone);
   font-family:'Onest',system-ui,-apple-system,'Helvetica Neue',sans-serif;
@@ -82,9 +82,8 @@ h1,h2,h3{ font-weight:400; margin:0; letter-spacing:-.005em; }
 [data-rv].rv-in{ opacity:1; transform:none;
   transition:opacity .9s var(--ease-out), transform 1.05s var(--ease-out); }
 .mask-line{ display:block; overflow:hidden; }
-.mask-line:not(.word-reveal) > span{ display:block; transform:translate3d(0,110%,0); }
+.mask-line:not(.word-reveal) > span{ display:block; transform:translate3d(0,110%,0); transition:transform 1.05s var(--ease-out); }
 .rv-in .mask-line:not(.word-reveal) > span, .mask-line:not(.word-reveal).rv-in > span{ transform:none; }
-.mask-line:not(.word-reveal) > span{ transition:transform 1.05s var(--ease-out); }
 .word-mask{ display:inline-block; overflow:hidden; vertical-align:top; }
 .word{
   display:inline-block; opacity:0; transform:translate3d(0,112%,0); will-change:transform,opacity;
@@ -129,7 +128,7 @@ h1,h2,h3{ font-weight:400; margin:0; letter-spacing:-.005em; }
 .nav::before{
   content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
   background:rgba(5,7,10,.62);
-  backdrop-filter:blur(14px) saturate(1.1); -webkit-backdrop-filter:blur(14px) saturate(1.1);
+  -webkit-backdrop-filter:blur(14px) saturate(1.1); backdrop-filter:blur(14px) saturate(1.1);
   opacity:0; transition:opacity .5s linear;
 }
 .nav.stuck::before{ opacity:1; }
@@ -280,6 +279,7 @@ h1,h2,h3{ font-weight:400; margin:0; letter-spacing:-.005em; }
 .card-fr{
   position:relative; aspect-ratio:4/5; background:transparent;
   outline:1px solid var(--line-soft); outline-offset:-1px;
+  isolation:isolate;
   transition:outline-color .5s var(--ease);
 }
 .card:hover .card-fr{ outline-color:rgba(223,231,224,.30); }
@@ -324,7 +324,7 @@ h1,h2,h3{ font-weight:400; margin:0; letter-spacing:-.005em; }
    only breathes through moving air, so the moons get a slow, shallow swell and
    nothing more. Giving them both a flicker is what makes this kind of thing
    look like a novelty; the difference is the whole effect. */
-.card-fr{ isolation:isolate; }        /* keep the screen blend inside the card */
+/* keep the screen blend inside the card */
 .glow{
   position:absolute; z-index:1; pointer-events:none;
   left:var(--gx); top:var(--gy); width:calc(var(--gr) * 2); aspect-ratio:1;
@@ -887,7 +887,7 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
 <body data-layout-hero="b" data-layout-story="b" data-layout-gallery="b"
       data-layout-curriculum="b" data-layout-closing="b" data-layout-footer="b">
 
-<canvas id="gl" aria-hidden="true"></canvas>
+<canvas id="gl"></canvas>
 <div id="vignette"></div>
 <div id="grain"></div>
 <div class="cur-dot" id="cursor"></div>
@@ -935,12 +935,11 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
   <div class="hero-top">
     <div class="eyebrow" data-rv="fade"><span class="dot"></span> Chapter 00 — The Hidden Gate</div>
     <h1 class="display h-hero">
-      <span class="mask-line"><span>Where stillness</span></span>
-      <span class="mask-line"><span>reveals the</span></span>
-      <span class="mask-line"><span>unseen.</span></span>
+      <span class="mask-line"><span>WHERE STILLNESS</span></span>
+      <span class="mask-line"><span>REVEALS THE UNSEEN.</span></span>
     </h1>
-    <p class="hero-sub body" data-rv="up">Enter Kyoto through its quiet thresholds, where ritual,
-      craft, and memory shape the path.</p>
+    <p class="hero-sub body" data-rv="up">CodeSentinel watches your codebase so you don't have to. Review PRs, generate docs, triage
+      bugs, and scaffold tests — all from one dashboard.</p>
   </div>
 
   <div class="hero-spacer"></div>
@@ -1039,26 +1038,26 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
     <article class="card" data-rv="up" data-view="0" data-cursor>
       <div class="card-fr" data-frame>
                 <span class="card-ar"><svg viewBox="0 0 14 14" fill="none"><path d="M3 11 11 3M5 3h6v6" stroke="#dfe7e0" stroke-width="1.3"/></svg></span>
-        <i class="glow" style="--gx:80.2%; --gy:23.9%; --gr:22%; --gt:6.1s; --gt2:9.7s; --gc1:rgba(255,142,108,.50); --gc2:rgba(212,56,38,.24)"></i>
-        <div class="card-lab"><b>Approach</b><span class="jp">参道</span></div>
+        <i class="glow glow-1"></i>
+        <div class="card-lab"><b>AI Review</b><span class="jp">審査</span></div>
       </div>
-      <div class="card-meta"><span>The long climb</span><span>01 / 03</span></div>
+      <div class="card-meta"><span>PR Analysis</span><span>01 / 03</span></div>
     </article>
     <article class="card" data-rv="up" data-view="1" data-cursor>
       <div class="card-fr" data-frame>
                 <span class="card-ar"><svg viewBox="0 0 14 14" fill="none"><path d="M3 11 11 3M5 3h6v6" stroke="#dfe7e0" stroke-width="1.3"/></svg></span>
-        <i class="glow glow--flame" style="--gx:70.5%; --gy:47.2%; --gr:14%; --gt:3.7s; --gt2:5.3s; --gc1:rgba(255,198,124,.62); --gc2:rgba(226,118,40,.30)"></i>
-        <div class="card-lab"><b>Lanterns</b><span class="jp">灯籠</span></div>
+        <i class="glow glow--flame glow-2"></i>
+        <div class="card-lab"><b>Docs Engine</b><span class="jp">文書</span></div>
       </div>
-      <div class="card-meta"><span>Lantern court</span><span>02 / 03</span></div>
+      <div class="card-meta"><span>Auto documentation</span><span>02 / 03</span></div>
     </article>
     <article class="card" data-rv="up" data-view="2" data-cursor>
       <div class="card-fr" data-frame>
                 <span class="card-ar"><svg viewBox="0 0 14 14" fill="none"><path d="M3 11 11 3M5 3h6v6" stroke="#dfe7e0" stroke-width="1.3"/></svg></span>
-        <i class="glow" style="--gx:48.0%; --gy:16.8%; --gr:20%; --gt:7.3s; --gt2:11.2s; --gc1:rgba(255,138,104,.52); --gc2:rgba(208,54,36,.24)"></i>
-        <div class="card-lab"><b>Moonwater</b><span class="jp">月影</span></div>
+        <i class="glow glow-3"></i>
+        <div class="card-lab"><b>Bug Sentinel</b><span class="jp">監視</span></div>
       </div>
-      <div class="card-meta"><span>The wet court</span><span>03 / 03</span></div>
+      <div class="card-meta"><span>Smart triage</span><span>03 / 03</span></div>
     </article>
   </div>
 </section>
@@ -1078,43 +1077,43 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
     </span>
   </div>
   <div class="sec-head" data-rv="fade">
-    <span class="k"><b>03</b> — Sacred Craft</span><span class="rule"></span><span class="k jp">手業</span>
+    <span class="k"><b>03</b> — Core Tools</span><span class="rule"></span><span class="k jp">道具</span>
   </div>
   <div class="cur-head">
-    <h2 class="display h-sec" data-rv="up">Five chapters. Ninety minutes. One quiet mind.</h2>
-    <p class="body-lg" data-rv="up">Each chapter is a walk, not a lecture. You arrive at the gate, climb the
-      steps, sit with the lantern, and leave with one thing worth keeping.</p>
+    <h2 class="display h-sec" data-rv="up">Five tools. One dashboard. Zero noise.</h2>
+    <p class="body-lg" data-rv="up">Each tool is purpose-built for a single job. Connect your repo, push a commit,
+      and let CodeSentinel handle the rest — review, document, triage, test, and ship.</p>
   </div>
   <div class="cur" id="cur">
     <div class="les" data-les="0" data-cursor>
       <span class="k">01</span>
-      <h3>The Hidden Gate<em class="jp">山門</em></h3>
-      <p>Why a gate is a sentence, and what you agree to when you walk under one.</p>
-      <span class="t">14 min</span><i class="bar"></i>
+      <h3>PR Review<em class="jp">審査</em></h3>
+      <p>Line-level AI analysis on every pull request — catching bugs, style issues, and security risks.</p>
+      <span class="t">Instant</span><i class="bar"></i>
     </div>
     <div class="les" data-les="1" data-cursor>
       <span class="k">02</span>
-      <h3>Borrowed Scenery<em class="jp">借景</em></h3>
-      <p>Shakkei: composing with a mountain you will never own.</p>
-      <span class="t">18 min</span><i class="bar"></i>
+      <h3>Docs Generation<em class="jp">文書</em></h3>
+      <p>Auto-generate docstrings, READMEs, and architecture diagrams from your codebase.</p>
+      <span class="t">On push</span><i class="bar"></i>
     </div>
     <div class="les" data-les="2" data-cursor>
       <span class="k">03</span>
-      <h3>Charred Cypress<em class="jp">焼杉</em></h3>
-      <p>Yakisugi: burning a board black so the weather will let it live.</p>
-      <span class="t">21 min</span><i class="bar"></i>
+      <h3>Bug Triage<em class="jp">分類</em></h3>
+      <p>Smart severity scoring and root-cause analysis powered by multi-provider AI.</p>
+      <span class="t">Real-time</span><i class="bar"></i>
     </div>
     <div class="les" data-les="3" data-cursor>
       <span class="k">04</span>
-      <h3>Lantern Light<em class="jp">灯籠</em></h3>
-      <p>How a single ember decides the scale of everything around it.</p>
-      <span class="t">17 min</span><i class="bar"></i>
+      <h3>Test Scaffold<em class="jp">試験</em></h3>
+      <p>Framework-aware test generation — unit, integration, and edge cases in one click.</p>
+      <span class="t">Per commit</span><i class="bar"></i>
     </div>
     <div class="les" data-les="4" data-cursor>
       <span class="k">05</span>
-      <h3>The Vermilion Moon<em class="jp">朱月</em></h3>
-      <p>Why the moon burns red over the valley, and what the garden does with it.</p>
-      <span class="t">22 min</span><i class="bar"></i>
+      <h3>AI Fallback Chain<em class="jp">連鎖</em></h3>
+      <p>NVIDIA NIM → Gemini → Groq — triple-redundant AI ensures zero downtime on every request.</p>
+      <span class="t">Always on</span><i class="bar"></i>
     </div>
   </div>
 </section>
@@ -1166,30 +1165,29 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
         <circle cx="22" cy="25" r="8.6" fill="#e0231c" fill-opacity=".9"/>
         <path d="M5 13h34M9 18.4h26M22 8.5v27" stroke="#dfe7e0" stroke-width="1.5"/>
       </svg>
-      <p>A five-chapter night walk through a Kyoto mountain temple. Three illustrated garden field notes
-        sit inside a live Three.js sanctuary.</p>
+      <p>CodeSentinel — AI-powered code review and DevOps co-pilot. Built with NVIDIA NIM, Gemini, and Groq.</p>
     </div>
-    <div><h4>Chapters</h4><ul>
-      <li><a href="#gate" data-cursor>The Sanmon</a></li>
-      <li><a href="#pathways" data-cursor>Still Gardens</a></li>
-      <li><a href="#lessons" data-cursor>Sacred Craft</a></li>
-      <li><a href="#eternity" data-cursor>Afterlight</a></li>
+    <div><h4>Features</h4><ul>
+      <li><a href="#gate" data-cursor>PR Review</a></li>
+      <li><a href="#pathways" data-cursor>Docs Generation</a></li>
+      <li><a href="#lessons" data-cursor>Bug Triage</a></li>
+      <li><a href="#eternity" data-cursor>Test Scaffold</a></li>
     </ul></div>
-    <div><h4>Practice</h4><ul>
-      <li><a href="#lessons" data-cursor>Borrowed scenery</a></li>
-      <li><a href="#lessons" data-cursor>Lantern light</a></li>
-      <li><a href="#lessons" data-cursor>Charred cypress</a></li>
-      <li><a href="#lessons" data-cursor>Raked gravel</a></li>
+    <div><h4>Resources</h4><ul>
+      <li><a href="#gate" data-cursor>Documentation</a></li>
+      <li><a href="#pathways" data-cursor>API Reference</a></li>
+      <li><a href="#lessons" data-cursor>Changelog</a></li>
+      <li><a href="#eternity" data-cursor>Status Page</a></li>
     </ul></div>
-    <div><h4>Elsewhere</h4><ul>
-      <li><a href="#top" data-cursor>Journal</a></li>
-      <li><a href="#top" data-cursor>Field notes</a></li>
-      <li><a href="#top" data-cursor>Colophon</a></li>
+    <div><h4>Connect</h4><ul>
+      <li><a href="https://github.com" data-cursor>GitHub</a></li>
+      <li><a href="#top" data-cursor>Discord</a></li>
+      <li><a href="#top" data-cursor>Twitter / X</a></li>
     </ul></div>
   </div>
   <div class="foot-base">
-    <span>© 2026 Kage — Kage no Michi</span>
-    <span class="jp">静けさは一つの技である</span>
+    <span>© 2026 CodeSentinel — AI Co-Pilot</span>
+    <span class="jp">コードを守る、未来を創る</span>
     <span>WebGL · Onest · Kyoto</span>
   </div>
 </footer>
@@ -1216,23 +1214,23 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
 /* ------------------------------------------------------------ 0 · basics */
 const Q      = new URLSearchParams(location.search);
 const qs     = (k, d) => { const v = Q.get(k); return v === null ? d : v; };
-const qn     = (k, d) => { const v = Q.get(k); return v === null ? d : parseFloat(v); };
+const qn     = (k, d) => { const v = Q.get(k); return v === null ? d : Number.parseFloat(v); };
 const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const COARSE = matchMedia('(hover: none)').matches;
 
-const clamp  = (v, a, b) => v < a ? a : (v > b ? b : v);
+const clamp  = (v, a, b) => Math.min(Math.max(v, a), b);
 const sat    = v => clamp(v, 0, 1);
 const lerp   = (a, b, t) => a + (b - a) * t;
 const smooth = (e0, e1, x) => { const t = sat((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
 const easeOut= t => 1 - Math.pow(1 - t, 3);
-const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+/* const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; */
 const TAU    = Math.PI * 2;
 /* frame-rate independent damping */
 const damp   = (cur, to, rate, dt) => lerp(cur, to, 1 - Math.exp(-rate * dt));
 
 function mulberry32(a) {
   return function () {
-    a |= 0; a = a + 0x6D2B79F5 | 0;
+    a = Math.trunc(a); a = Math.trunc(a + 0x6D2B79F5);
     let t = Math.imul(a ^ a >>> 15, 1 | a);
     t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
     return ((t ^ t >>> 14) >>> 0) / 4294967296;

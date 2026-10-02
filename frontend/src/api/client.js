@@ -119,4 +119,21 @@ export function getHealthReport(repoId) {
   return apiClient.get(`/agents/repo-health/report/${repoId}/`);
 }
 
+// ── Data Management ───────────────────────────────────
+export function downloadMyData() {
+  return apiClient.get('/auth/data/download/');
+}
+
+export function deleteMyAccount() {
+  return apiClient.delete('/auth/data/delete/');
+}
+
+export function disconnectGitHub() {
+  return apiClient.post('/auth/data/disconnect-github/');
+}
+
+export function saveConsentRecord(consentData) {
+  return apiClient.post('/auth/data/consent/', consentData);
+}
+
 export default apiClient;

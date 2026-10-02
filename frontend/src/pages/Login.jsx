@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import Loader from '../components/shared/Loader';
@@ -9,6 +9,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [consentAgreed, setConsentAgreed] = useState(false);
 
   // While Firebase is resolving the auth state, show a loader
   if (authLoading) {
@@ -55,10 +56,23 @@ export default function Login() {
           </div>
         )}
 
+        <label className="flex items-start gap-3 mb-6 text-left cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={consentAgreed}
+            onChange={(e) => setConsentAgreed(e.target.checked)}
+            className="mt-1 w-4 h-4 rounded accent-accent bg-white/5 border-white/20"
+          />
+          <span className="text-sm text-white/60 group-hover:text-white/80 transition-colors">
+            I agree to the <Link to="/terms" className="text-accent hover:underline">Terms &amp; Conditions</Link> and{' '}
+            <Link to="/privacy" className="text-accent hover:underline">Privacy Policy</Link>.
+          </span>
+        </label>
+
         <button
           onClick={handleLogin}
-          disabled={loading}
-          className="btn-accent w-full text-lg py-4 flex items-center justify-center gap-3 disabled:opacity-50"
+          disabled={loading || !consentAgreed}
+          className="btn-accent w-full text-lg py-4 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <div className="w-5 h-5 border-2 border-navy-900/30 border-t-navy-900 rounded-full animate-spin" />

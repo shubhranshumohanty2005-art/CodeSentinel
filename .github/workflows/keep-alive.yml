@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Ping backend health endpoint
         env:
-          HEALTH_URL: ${{ vars.RENDER_BACKEND_URL || 'https://codesentinel-backend.onrender.com' }}/api/health/?deep=false
+          HEALTH_URL: https://codesentinel-backend.onrender.com/api/health/?deep=false
         run: |
           echo "Pinging: $HEALTH_URL"
           response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$HEALTH_URL" || true)

@@ -4,6 +4,7 @@ import PageShell from '../components/layout/PageShell';
 import GlassCard from '../components/layout/GlassCard';
 import Loader, { ProgressBar } from '../components/shared/Loader';
 import EmptyState from '../components/shared/EmptyState';
+import SkeletonLoader from '../components/shared/SkeletonLoader';
 import { generateDocs, commitDocs } from '../api/client';
 import { useJobStatus } from '../hooks/useJobStatus';
 import { useRepos } from '../hooks/useRepos';
@@ -159,6 +160,12 @@ export default function DocsGenerator() {
             <ReactMarkdown>{result.content}</ReactMarkdown>
           </div>
           <p className="text-xs text-white/30 mt-2">AI Provider: {result.aiProvider}</p>
+        </GlassCard>
+      )}
+
+      {loading && !result && (
+        <GlassCard>
+          <SkeletonLoader />
         </GlassCard>
       )}
 

@@ -203,8 +203,8 @@
   z-index: -1;
   pointer-events: none;
   background: rgba(5, 7, 10, 0.62);
-  backdrop-filter: blur(14px) saturate(1.1);
   -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  backdrop-filter: blur(14px) saturate(1.1);
   opacity: 0;
   transition: opacity 0.5s linear;
 }
@@ -466,8 +466,8 @@
   z-index: -1;
   pointer-events: none;
   background: radial-gradient(110% 62% at 30% 50%, rgba(4, 7, 10, 0.88), rgba(4, 7, 10, 0.62) 42%, rgba(4, 7, 10, 0.18) 74%, rgba(4, 7, 10, 0));
-  mask-image: linear-gradient(transparent, #000 44%);
   -webkit-mask-image: linear-gradient(transparent, #000 44%);
+  mask-image: linear-gradient(transparent, #000 44%);
 }
 
 .kage-sec-head {
@@ -642,6 +642,10 @@
   text-transform: uppercase;
   color: var(--muted);
 }
+
+.glow-1 { --gx: 80.2%; --gy: 23.9%; --gr: 22%; --gt: 6.1s; --gt2: 9.7s; --gc1: rgba(255,142,108,.50); --gc2: rgba(212,56,38,.24); }
+.glow-2 { --gx: 70.5%; --gy: 47.2%; --gr: 14%; --gt: 3.7s; --gt2: 5.3s; --gc1: rgba(255,198,124,.62); --gc2: rgba(226,118,40,.30); }
+.glow-3 { --gx: 48.0%; --gy: 16.8%; --gr: 20%; --gt: 7.3s; --gt2: 11.2s; --gc1: rgba(255,138,104,.52); --gc2: rgba(208,54,36,.24); }
 
 /* ═══════════════ Curriculum (How It Works) ═══════════════ */
 .kage-cur-head {

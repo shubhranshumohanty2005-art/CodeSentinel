@@ -17,8 +17,61 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 # Provider timeout in seconds
-PROVIDER_TIMEOUT = 60
+PROVIDER_TIMEOUT = 170
 
+
+import requests
+import functools
+
+@functools.lru_cache(maxsize=1)
+def get_nvidia_model():
+    """Dynamically fetch the latest available Llama 11B/70B model on NVIDIA."""
+    api_key = settings.NVIDIA_API_KEY
+    default_model = "meta/llama-3.2-11b-vision-instruct"
+    if not api_key: return default_model
+    try:
+        res = requests.get("https://integrate.api.nvidia.com/v1/models", headers={"Authorization": f"Bearer {api_key}"}, timeout=5)
+        if res.status_code == 200:
+            models = [m['id'] for m in res.json().get('data', [])]
+            # Prioritize newer 11B models for speed/stability, then fallback to 70B
+            prefs = ["meta/llama-3.3-11b-vision-instruct", "meta/llama-3.2-11b-vision-instruct", "meta/llama-3.3-70b-instruct"]
+            for p in prefs:
+                if p in models: return p
+    except Exception:
+        pass
+    return default_model
+
+@functools.lru_cache(maxsize=1)
+def get_groq_model():
+    """Dynamically fetch the latest model on Groq."""
+    api_key = settings.GROQ_API_KEY
+    default_model = "qwen/qwen3.8-27b"
+    if not api_key: return default_model
+    try:
+        res = requests.get("https://api.groq.com/openai/v1/models", headers={"Authorization": f"Bearer {api_key}"}, timeout=5)
+        if res.status_code == 200:
+            models = [m['id'] for m in res.json().get('data', [])]
+            prefs = ["openai/gpt-oss-120b", "qwen/qwen3.8-27b"]
+            for p in prefs:
+                if p in models: return p
+    except Exception:
+        pass
+    return default_model
+
+@functools.lru_cache(maxsize=1)
+def get_gemini_model(api_key):
+    """Dynamically fetch the latest Gemini Flash model."""
+    default_model = "gemini-1.5-flash"
+    try:
+        res = requests.get(f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}", timeout=5)
+        if res.status_code == 200:
+            models = [m['name'].replace('models/', '') for m in res.json().get('models', [])]
+            prefs = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash"]
+            for p in prefs:
+                if p in models: return p
+    except Exception:
+        pass
+    return default_model
 
 def _call_nvidia(prompt, system=None, json_mode=False):
     """Call NVIDIA NIM API (OpenAI-compatible endpoint)."""
@@ -41,7 +94,7 @@ def _call_nvidia(prompt, system=None, json_mode=False):
     messages.append({"role": "user", "content": prompt})
 
     kwargs = {
-        "model": "nvidia/llama-3.1-nemotron-70b-instruct",
+        "model": get_nvidia_model(),
         "messages": messages,
         "temperature": 0.3,
         "max_tokens": 4096,
@@ -60,25 +113,26 @@ def _call_gemini(prompt, system=None, json_mode=False):
     if not api_key:
         raise ValueError("GEMINI_API_KEY not configured")
 
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(
-        'gemini-3.8-flash',
-        system_instruction=system if system else None,
-    )
+    client = genai.Client(api_key=api_key, http_options={'timeout': PROVIDER_TIMEOUT})
 
-    generation_config = {
+    config_kwargs = {
         "temperature": 0.3,
         "max_output_tokens": 4096,
     }
+    
+    if system:
+        config_kwargs["system_instruction"] = system
+        
     if json_mode:
-        generation_config["response_mime_type"] = "application/json"
+        config_kwargs["response_mime_type"] = "application/json"
 
-    response = model.generate_content(
-        prompt,
-        generation_config=generation_config,
-        request_options={"timeout": PROVIDER_TIMEOUT},
+    response = client.models.generate_content(
+        model=get_gemini_model(api_key),
+        contents=prompt,
+        config=types.GenerateContentConfig(**config_kwargs),
     )
     return response.text
 
@@ -89,7 +143,7 @@ def _call_groq(prompt, system=None, json_mode=False):
     if not api_key:
         raise ValueError("GROQ_API_KEY not configured")
 
-    from groq import Groq
+    from groq import Groq  # type: ignore
 
     client = Groq(api_key=api_key, timeout=PROVIDER_TIMEOUT, max_retries=0)
 
@@ -99,10 +153,10 @@ def _call_groq(prompt, system=None, json_mode=False):
     messages.append({"role": "user", "content": prompt})
 
     kwargs = {
-        "model": "qwen/qwen3.8-27b",
+        "model": get_groq_model(),
         "messages": messages,
         "temperature": 0.3,
-        "max_tokens": 4096,
+        "max_tokens": 1000,
     }
 
     if json_mode:
@@ -124,7 +178,7 @@ import re
 import sys
 
 
-def generate(prompt, system=None, json_mode=False):
+def generate(prompt, system=None, json_mode=False):  # NOSONAR
     """
     Generate AI response with automatic fallback chain.
 

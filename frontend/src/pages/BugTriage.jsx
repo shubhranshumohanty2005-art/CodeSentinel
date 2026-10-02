@@ -4,6 +4,7 @@ import GlassCard from '../components/layout/GlassCard';
 import Loader, { ProgressBar } from '../components/shared/Loader';
 import Badge from '../components/shared/Badge';
 import EmptyState from '../components/shared/EmptyState';
+import SkeletonLoader from '../components/shared/SkeletonLoader';
 import { analyzeIssue, applyLabels } from '../api/client';
 import { useJobStatus } from '../hooks/useJobStatus';
 import { useRepos } from '../hooks/useRepos';
@@ -182,6 +183,12 @@ export default function BugTriage() {
             </GlassCard>
           )}
         </div>
+      )}
+
+      {loading && !report && (
+        <GlassCard>
+          <SkeletonLoader />
+        </GlassCard>
       )}
 
       {!report && !loading && !error && (

@@ -97,6 +97,49 @@ def disconnect_repo(uid, repo_id):
     return True
 
 
+def delete_user_data(uid):
+    """Delete a user's profile and all subcollections from Firestore."""
+    db = _get_firestore_client()
+    if not db:
+        return False
+    
+    # Recursively delete subcollections
+    def delete_collection(coll_ref):
+        for doc in coll_ref.stream():
+            # Recursively delete subcollections of this doc
+            for sub_coll in doc.reference.collections():
+                delete_collection(sub_coll)
+            doc.reference.delete()
+
+    user_ref = db.collection('users').document(uid)
+    for sub_coll in user_ref.collections():
+        delete_collection(sub_coll)
+    
+    # Delete the user document itself
+    user_ref.delete()
+    return True
+
+
+def save_consent_record(uid, data):
+    """Save a consent record for the user."""
+    db = _get_firestore_client()
+    if not db:
+        return False
+    # Use timestamp as document ID to keep a history
+    doc_id = data.get('timestamp', datetime.utcnow().isoformat())
+    db.collection('users').document(uid).collection('consent_records').document(doc_id).set(data)
+    return True
+
+
+def get_consent_records(uid):
+    """Get all consent records for a user."""
+    db = _get_firestore_client()
+    if not db:
+        return []
+    docs = db.collection('users').document(uid).collection('consent_records').order_by('timestamp', direction='DESCENDING').stream()
+    return [{'id': doc.id, **doc.to_dict()} for doc in docs]
+
+
 def save_pr_review(repo_id, pr_number, data):
     """Save a PR review report to Firestore."""
     db = _get_firestore_client()

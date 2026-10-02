@@ -5,6 +5,7 @@ import Loader, { ProgressBar } from '../components/shared/Loader';
 import Badge from '../components/shared/Badge';
 import RiskScoreGauge from '../components/shared/RiskScoreGauge';
 import EmptyState from '../components/shared/EmptyState';
+import SkeletonLoader from '../components/shared/SkeletonLoader';
 import { analyzePR, postPRToGithub } from '../api/client';
 import { useJobStatus } from '../hooks/useJobStatus';
 import { useRepos } from '../hooks/useRepos';
@@ -165,6 +166,12 @@ export default function PRReview() {
             )}
           </GlassCard>
         </div>
+      )}
+
+      {loading && !report && (
+        <GlassCard>
+          <SkeletonLoader />
+        </GlassCard>
       )}
 
       {!report && !loading && !error && (

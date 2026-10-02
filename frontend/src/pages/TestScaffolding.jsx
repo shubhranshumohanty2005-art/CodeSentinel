@@ -3,6 +3,7 @@ import PageShell from '../components/layout/PageShell';
 import GlassCard from '../components/layout/GlassCard';
 import Loader, { ProgressBar } from '../components/shared/Loader';
 import EmptyState from '../components/shared/EmptyState';
+import SkeletonLoader from '../components/shared/SkeletonLoader';
 import { generateTests, commitTest } from '../api/client';
 import { useJobStatus } from '../hooks/useJobStatus';
 import { useRepos } from '../hooks/useRepos';
@@ -144,6 +145,12 @@ export default function TestScaffolding() {
           <div className="code-block max-h-[600px] overflow-auto">
             <pre className="text-sm text-white/80 whitespace-pre-wrap">{result.generatedTest}</pre>
           </div>
+        </GlassCard>
+      )}
+
+      {loading && !result && (
+        <GlassCard>
+          <SkeletonLoader />
         </GlassCard>
       )}
 

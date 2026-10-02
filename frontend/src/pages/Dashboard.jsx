@@ -5,7 +5,7 @@ import PageShell from '../components/layout/PageShell';
 import GlassCard from '../components/layout/GlassCard';
 import { useAuth } from '../hooks/useAuth';
 import { useRepos } from '../hooks/useRepos';
-import { runHealthAgent, getHealthReport } from '../api/client';
+import { runHealthAgent } from '../api/client';
 
 const tools = [
   { to: '/pr-review', icon: '🔍', title: 'PR Reviewer', description: 'Analyze pull requests for bugs, style, and security issues', color: '#00D4FF' },
@@ -37,9 +37,46 @@ export default function Dashboard() {
     }
   };
 
+  const renderRepoControls = () => {
+    if (reposLoading) {
+      return <span className="text-xs text-white/40 animate-pulse">Loading repos...</span>;
+    }
+    if (reposError) {
+      return <span className="text-xs text-red-400">Failed to load repos — is the backend running?</span>;
+    }
+    if (sortedRepos.length === 0) {
+      return (
+        <Link to="/connect-repo" className="text-xs text-accent hover:underline">
+          No repos found — connect one →
+        </Link>
+      );
+    }
+    return (
+      <>
+        <select 
+          value={selectedRepo} 
+          onChange={e => setSelectedRepo(e.target.value)}
+          className="glass-input text-sm py-1.5 px-3"
+        >
+          <option value="">Select a repo...</option>
+          {sortedRepos.map(r => (
+            <option key={r.id} value={r.full_name}>{r.full_name}</option>
+          ))}
+        </select>
+        <button
+          onClick={handleRunHealth}
+          disabled={healthLoading || !selectedRepo}
+          className="btn-accent text-sm py-1.5 px-4 disabled:opacity-50"
+        >
+          {healthLoading ? 'Running...' : 'Run Health Check'}
+        </button>
+      </>
+    );
+  };
+
   return (
     <PageShell
-      title={`Welcome back${user?.displayName ? `, ${user.displayName}` : ''}`}
+      title={user?.displayName ? `Welcome back, ${user.displayName}` : 'Welcome back'}
       subtitle="Your AI-powered code review dashboard"
     >
       {/* Tool cards */}
@@ -86,35 +123,7 @@ export default function Dashboard() {
               </p>
             </div>
             <div className="flex gap-2 items-center">
-              {reposLoading ? (
-                <span className="text-xs text-white/40 animate-pulse">Loading repos...</span>
-              ) : reposError ? (
-                <span className="text-xs text-red-400">Failed to load repos — is the backend running?</span>
-              ) : sortedRepos.length === 0 ? (
-                <Link to="/connect-repo" className="text-xs text-accent hover:underline">
-                  No repos found — connect one →
-                </Link>
-              ) : (
-                <>
-                  <select 
-                    value={selectedRepo} 
-                    onChange={e => setSelectedRepo(e.target.value)}
-                    className="glass-input text-sm py-1.5 px-3"
-                  >
-                    <option value="">Select a repo...</option>
-                    {sortedRepos.map(r => (
-                      <option key={r.id} value={r.full_name}>{r.full_name}</option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={handleRunHealth}
-                    disabled={healthLoading || !selectedRepo}
-                    className="btn-accent text-sm py-1.5 px-4 disabled:opacity-50"
-                  >
-                    {healthLoading ? 'Running...' : 'Run Health Check'}
-                  </button>
-                </>
-              )}
+              {renderRepoControls()}
             </div>
           </div>
 
@@ -131,7 +140,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="text-sm text-white/70 whitespace-pre-wrap">
-                {healthReport.healthSummary?.substring(0, 500)}
+                {healthReport.healthSummary}
               </div>
             </div>
           )}

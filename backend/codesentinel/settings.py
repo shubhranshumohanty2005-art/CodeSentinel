@@ -31,10 +31,20 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'apps.core.firebase_auth.FirebaseAuthMiddleware',
 ]
+
+# Security Headers (CSP, HSTS, X-Frame-Options)
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+# CSP for the API endpoints (mostly to prevent execution if someone opens an API URL in browser)
+CSP_DEFAULT_SRC = ("'none'",)
+CSP_STYLE_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'none'",)
 
 ROOT_URLCONF = 'codesentinel.urls'
 

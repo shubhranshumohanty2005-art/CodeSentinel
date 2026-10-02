@@ -34,6 +34,7 @@
 - Always use `apps.ai.ai_client.generate()` or `generate_json()` for AI calls.
 - Never call a provider directly from views or services.
 - The chain order is fixed: NVIDIA NIM → Gemini → Groq.
+- Always use the latest version of the API model available from the provider.
 - Never hardcode an API key. Always read from `settings.NVIDIA_API_KEY`, etc.
 - Always store which provider served a request in Firestore (`aiProvider` field).
 - Always catch and log provider errors — never let a single provider failure crash the app.
