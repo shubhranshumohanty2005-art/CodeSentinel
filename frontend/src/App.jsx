@@ -2,7 +2,6 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { ConsentProvider, useConsent } from './hooks/useConsent';
 import Navbar from './components/layout/Navbar';
-import Footer from './components/layout/Footer';
 import CookieBanner from './components/shared/CookieBanner';
 import BlackHoleBackground from './components/shared/BlackHoleBackground';
 import Landing from './pages/Landing';
@@ -49,8 +48,6 @@ function AppRoutes() {
   const showBackground = location.pathname !== '/' && location.pathname !== '/login';
   // Hide default navbar on Landing page (Kage has its own nav)
   const showNavbar = location.pathname !== '/';
-  // Show footer only on the Landing page
-  const showFooter = location.pathname === '/';
 
   return (
     <>
@@ -79,7 +76,6 @@ function AppRoutes() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
-        {showFooter && <Footer onOpenCookieSettings={openPreferences} />}
       </div>
       <CookieBanner />
     </>
